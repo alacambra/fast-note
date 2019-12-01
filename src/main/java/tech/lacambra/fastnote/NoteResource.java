@@ -2,6 +2,7 @@ package tech.lacambra.fastnote;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.Arrays;
 import java.util.List;
 
 @Path("note")
@@ -18,7 +19,7 @@ public class NoteResource {
   @Path("ping")
   @GET
   public List<String> ping() {
-    return List.of("pong");
+    return Arrays.asList("pong");
   }
 
   @GET

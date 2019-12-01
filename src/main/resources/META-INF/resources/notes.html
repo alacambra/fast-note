@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Notes service</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.8/wing.min.css"/>
+  <!-- Load AngularJS -->
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+  <script type="text/javascript">
+      var app = angular.module("NotesManagement", []);
+
+      //Controller Part
+      app.controller("NotesManagementController", function ($scope, $http) {
+
+          //Initialize page with default data which is blank in this example
+          $scope.notes = [];
+
+          $scope.form = {
+              text: "",
+          };
+
+          //Now load the data from server
+          _refreshPageData();
+
+          //HTTP POST methods for add notes
+          $scope.add = function () {
+              var data = {"text": $scope.form.text};
+
+              $http({
+                  method: "POST",
+                  url: '/note',
+                  data: angular.toJson(data),
+                  headers: {
+                      'Content-Type': 'application/json'
+                  }
+              }).then(_success, _error);
+          };
+
+          $scope.cleanUp = function () {
+              $http({
+                  method: "delete",
+                  url: '/note',
+              }).then(_success, _error);
+          };
+
+          /* Private Methods */
+
+          //HTTP GET- get all notes collection
+          function _refreshPageData() {
+              $http({
+                  method: 'GET',
+                  url: '/note'
+              }).then(function successCallback(response) {
+                  $scope.notes = response.data;
+              }, function errorCallback(response) {
+                  console.log(response.statusText);
+              });
+          }
+
+          function _success(response) {
+              _refreshPageData();
+              _clearForm();
+          }
+
+          function _error(response) {
+              alert(response.data.message || response.statusText);
+          }
+
+          //Clear the form
+          function _clearForm() {
+              $scope.form.text = "";
+          }
+      });
+  </script>
+</head>
+<body ng-app="NotesManagement" ng-controller="NotesManagementController">
+
+<div class="container">
+  <form ng-submit="add()">
+    <div class="row">
+      <div class="col-6"><input type="text" placeholder="note" ng-model="form.text" size="60"/></div>
+      <div class="col-6">
+        <input type="submit" value="Save"/>
+      </div>
+    </div>
+  </form>
+
+  <!--  <div class="row">-->
+  <!--    <div class="col-4">CreatedOn</div>-->
+  <!--    <div class="col-12">Note</div>-->
+  <!--  </div>-->
+  <div class="row" ng-repeat="note in notes">
+    <!--    <div class="col-2">{{ note.createdOn }}</div>-->
+    <div class="col-12">{{ note.text }}</div>
+  </div>
+
+  <div class="row">
+    <button ng-click="cleanUp()">Clean up</button>
+  </div>
+</div>
+
+</body>
+</html>

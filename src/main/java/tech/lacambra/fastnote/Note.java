@@ -37,7 +37,7 @@ public class Note {
 
   int isBefore(Note note) {
 
-    return createdOn.isBefore(note.createdOn) ? -1 : 1;
+    return createdOn.isBefore(note.createdOn) ? 1 : -1;
 
   }
 

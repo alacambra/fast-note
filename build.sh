@@ -1,0 +1,1 @@
+oc start-build --git-repository=https://github.com/alacambra/fast-note.git --from-build=fast-note-8

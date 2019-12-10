@@ -2,6 +2,7 @@ package tech.lacambra.fastnote;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,9 +31,27 @@ public class NoteResource {
   @POST
   public List<Note> saveNote(Note note) {
 
+    note.loadFileNote();
     notesStore.add(note);
 
     return notesStore.getNotes();
+  }
+
+  @GET
+  @Path("file/{noteId}")
+  public Response uploadFile(@PathParam("noteId") String noteId) {
+
+    FileNote fileNote = notesStore.getNote(noteId)
+        .map(Note::getFileNote)
+        .orElse(null);
+
+    if (fileNote == null) {
+      return Response.ok().build();
+    }
+
+    return Response.ok(fileNote.getContent())
+        .header("Content-Disposition", "attachment; filename=" + fileNote.getName())
+        .build();
   }
 
 

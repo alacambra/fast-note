@@ -5,40 +5,144 @@
   <title>Notes service</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.8/wing.min.css"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <!-- Load AngularJS -->
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+  <script type="text/javascript">
+
+      function createFastNote() {
+          let data = {"text": document.getElementById("noteObject").value};
+          console.info("sending data", data);
+          postData("note", data).then(_ => loadNotesList());
+      }
+
+      function createFastNoteFromBytes(bytes, fileName) {
+          let data = {"text": fileName, "content": bytes};
+          postData("note", data).then(_ => loadNotesList());
+      }
+
+      async function loadNotesList() {
+          const noteItemTpl = document.getElementById("noteItemTpl");
+          const notesList = document.getElementById("notesList");
+
+          const notes = await getData("note");
+
+          notesList.innerText = "";
+          notes.forEach(n => {
+              const noteItem = document.importNode(noteItemTpl.content, true);
+              noteItem.querySelector("div div").innerHTML = n.text;
+
+              const button = noteItem.querySelector("button");
+
+              if (n.content === "true") {
+                  button.onclick = _ => {
+                      window.open("note/file/" + n.id);
+                  };
+              } else {
+                  button.hidden = true;
+              }
+
+              notesList.append(noteItem);
+          });
+      }
+
+      async function cleanUp() {
+          await del('note');
+          const notesList = document.getElementById("notesList");
+          notesList.innerText = "";
+      }
+
+      function postData(url = ``, data = {}) {
+          return fetch(url, {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify(data), // body data type must match "Content-Type" header
+          })
+              .then(response => inspectResponse(response))
+              .then(response => response.json());
+      }
+
+      function del(url) {
+          return fetch(url, {
+              method: "DELETE",
+          }).then(response => inspectResponse(response))
+      }
+
+      function getData(url = ``, data = {}) {
+          return fetch(url, {
+              method: "GET"
+          })
+              .then(response => inspectResponse(response))
+              .then(response => response.json());
+      }
+
+      function inspectResponse(response) {
+          console.info(response.status, response.headers);
+          return response;
+      }
+
+      window.onload = function () {
+
+          const dropZone = document.getElementById('noteObject');
+
+          // Optional.   Show the copy icon when dragging over.  Seems to only work for chrome.
+          dropZone.addEventListener('dragover', function (e) {
+              e.stopPropagation();
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'copy';
+          });
+
+          dropZone.addEventListener('drop', function (e) {
+              e.stopPropagation();
+              e.preventDefault();
+              const file = e.dataTransfer.files[0];
+
+              const reader = new FileReader();
+              const fileName = file.name;
+              reader.onload = function (e2) {
+                  createFastNoteFromBytes(e2.target.result, fileName);
+              };
+
+              reader.readAsDataURL(file); // start reading the file data.
+          });
+      };
+
+  </script>
 </head>
+<body>
+<div class="container">
+  <div class="row">
+    <div class="col-6">
+      <input id="noteObject" type="text" placeholder="note" size="60"/>
+    </div>
+    <div class="col-6">
+      <button onclick="createFastNote()">Save</button>
+    </div>
+  </div>
 
-<div id="dropZone" style="width: 100px; height: 100px; background-color: red"></div>
-<script type="text/javascript">
-    var dropZone = document.getElementById('dropZone');
+  <div id="notesList">
 
-    // Optional.   Show the copy icon when dragging over.  Seems to only work for chrome.
-    dropZone.addEventListener('dragover', function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-    });
+  </div>
 
-    // Get file data on drop
-    dropZone.addEventListener('drop', function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-        var files = e.dataTransfer.files; // Array of all files
+  <template id="noteItemTpl">
+    <div class="row">
+      <div style="border-bottom: solid black;/*! border-style: solid; */vertical-align: baseline;" class="col-6">
+      </div>
+      <div class="col-6">
+        <button>download</button>
+      </div>
+    </div>
+  </template>
 
-        for (var i = 0, file; file = files[i]; i++) {
-            // if (file.type.match(/image.*/)) {
-                var reader = new FileReader();
+  <div class="row">
+    <button onclick="cleanUp()">Clean up</button>
+  </div>
 
-                reader.onload = function (e2) {
-                    // finished reading file data.
-                    var img = document.createElement('img');
-                    // img.src = e2.target.result;
-                    // document.body.appendChild(img);
-                };
+  <script>
+      loadNotesList();
+  </script>
+</div>
 
-                reader.readAsDataURL(file); // start reading the file data.
-            // }
-        }
-    });
-</script>
 </body>
 </html>

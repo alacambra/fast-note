@@ -1,10 +1,7 @@
 package tech.lacambra.fastnote;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -28,6 +25,10 @@ public class NotesStore {
 
   public void add(Note note) {
     NOTES.add(note);
+  }
+
+  public Optional<Note> getNote(String id) {
+    return NOTES.stream().filter(n -> n.hasId(id)).findAny();
   }
 
   public List<Note> getNotes() {

@@ -12,7 +12,7 @@
       function createFastNote() {
           let data = {"text": document.getElementById("noteObject").value};
           console.info("sending data", data);
-          postData("ip", data).then(_ => loadNotesList());
+          postData("note", data).then(_ => loadNotesList());
       }
 
       function createFastNoteFromBytes(bytes, fileName) {
